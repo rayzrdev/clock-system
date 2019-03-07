@@ -27,7 +27,8 @@
                             </template>
 
                             <v-list>
-                                <settings :authorized="authorized"></settings>
+                                <settings :authorized="authorized" :spreadsheet="spreadsheet" @save="saveData">
+                                </settings>
 
                                 <v-list-tile @click="toggleDark">
                                     <v-list-tile-title>Toggle Theme</v-list-tile-title>
@@ -51,9 +52,14 @@
 
                 <!-- Current users -->
                 <v-container>
-                    <user v-for="(user, index) in users" :state="user" :index="index" @clock-out="clockOut"
-                        @remove="remove">
-                    </user>
+                    <user-picker :users="users" @select="setCurrentUser" v-if="currentUser < 0"></user-picker>
+                    <div v-else>
+                        <v-btn flat @click="currentUser = -1">Select other</v-btn>
+                        <user :state="users[currentUser]" :index="currentUser" @clock-out="clockOut"
+                            @remove="remove(currentUser)">
+                        </user>
+                    </div>
+                    <!-- <user v-for="(user, index) in users" :state="user" @clock-out="clockOut"></user> -->
                 </v-container>
             </v-content>
         </v-app>

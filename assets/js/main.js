@@ -29,8 +29,27 @@ Vue.component('user', {
     `
 });
 
+Vue.component('user-picker', {
+    props: ['users'],
+    methods: {
+        select(index) {
+            this.$emit('select', index);
+        }
+    },
+    template: `
+        <v-card v-if="users.length">
+            <v-card-title class="headline">Already clocked in?</v-card-title>
+            <v-card-text>
+                <v-layout flex>
+                    <v-btn outline xs6 sm3 md2 v-for="(user, index) in users" @click="select(index)">{{user.name}}</v-btn>
+                </v-layout>
+            </v-card-text>
+        </v-card>
+    `
+})
+
 Vue.component('settings', {
-    props: ['authorized', 'data'],
+    props: ['authorized', 'spreadsheet'],
     data() {
         return {
             dialog: false,
@@ -44,17 +63,15 @@ Vue.component('settings', {
         signOut() {
             window.GoogleAuth.signOut();
         },
-        validate() {
-            gapi.client.drive.files.list({
-                pageSize: 10,
-                fields: 'nextPageToken, files(id, name)',
-                q: 'mimeType=application/vnd.google-apps.spreadsheet'
-            }).then(res => {
-                let files = res.result.files;
+        selectSheet() {
+            pickFile().then(res => {
+                if (res && res.docs && res.docs.length) {
+                    const doc = res.docs[0];
+                    this.spreadsheet.id = doc.id;
+                    this.spreadsheet.name = doc.name;
 
-                if (files && files.length) {
-                    files.forEach(file => console.log(file.id + ' - ' + file.name));
-                    this.data.spreadsheetId = (files.filter(file => file.name === this.spreadsheetName)[0] || {}).id;
+                    console.log('Saving...');
+                    this.$emit('save');
                 }
             });
         }
@@ -75,10 +92,11 @@ Vue.component('settings', {
                 <v-divider></v-divider>
 
                 <v-card-text>
-                    TBA
+                    Selected spreadsheet: <b>{{ spreadsheet.name || 'None' }}</b>
                 </v-card-text>
 
                 <v-card-actions>
+                    <v-btn v-if="authorized" color="primary" outline @click="selectSheet">Select...</v-btn>
                     <v-spacer></v-spacer>
                     <v-btn v-if="!authorized" color="primary" flat @click="signIn">
                         Sign In
@@ -99,7 +117,12 @@ const app = new Vue({
         users: [],
         newUser: { name: '', clockIn: null },
         dark: false,
-        authorized: false
+        authorized: false,
+        currentUser: -1,
+        spreadsheet: {
+            id: null,
+            name: ''
+        }
     },
     mounted() {
         let settings;
@@ -111,6 +134,7 @@ const app = new Vue({
             // Manually handle
             this.users = settings.users;
             this.dark = settings.dark;
+            this.spreadsheet = settings.spreadsheet || { id: null, name: '' };
         }
     },
     watch: {
@@ -126,18 +150,37 @@ const app = new Vue({
     },
     methods: {
         saveData() {
+            console.log('Saving data!');
+            console.log(this.spreadsheet);
             localStorage.setItem('clock-state', JSON.stringify({
                 users: this.users,
-                dark: this.dark
+                dark: this.dark,
+                spreadsheet: this.spreadsheet
             }));
         },
         toggleDark() {
             this.dark = !this.dark;
             this.saveData();
         },
+        updateSpreadsheet(spreadsheet) {
+            this.spreadsheet = spreadsheet;
+            this.saveData();
+        },
+        verifySpreadsheet() {
+            if (this.spreadsheet.id) {
+                gapi.client.sheets.spreadsheets.get({ spreadsheetId: this.spreadsheet.id }).then(res => {
+                    if (res.status !== 200) {
+                        this.spreadsheet = { id: null, name: '' };
+                    }
+                }).catch(error => {
+                    this.spreadsheet = { id: null, name: '' };
+                });
+            }
+        },
         clockIn() {
             this.newUser.clockIn = Date.now();
             this.users.push(this.newUser);
+            this.currentUser = this.users.length - 1;
 
             // reset
             this.newUser = { name: '', clockIn: null };
@@ -163,8 +206,12 @@ const app = new Vue({
 
             this.remove(index);
         },
+        setCurrentUser(index) {
+            this.currentUser = index;
+        },
         remove(index) {
             this.users.splice(index, 1);
+            this.currentUser = -1;
         }
     }
 });
