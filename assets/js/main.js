@@ -16,25 +16,90 @@ Vue.component('user', {
         }
     },
     template: `
-      <v-card>
-        <v-card-title primary-title>
-          <h3 class="headline">{{state.name}}</h3>
-        </v-card-title>
-        <v-card-text>Clocked in since {{localeTime}}</v-card-text>
-        <v-card-actions>
-          <v-btn @click="remove">Cancel</v-btn>
-          <v-btn color="primary" @click="clockOut">Clock Out</v-btn>
-        </v-card-actions>
-      </div>
+        <v-card>
+            <v-card-title primary-title>
+                <h3 class="headline">{{state.name}}</h3>
+            </v-card-title>
+            <v-card-text>Clocked in since {{localeTime}}</v-card-text>
+            <v-card-actions>
+                <v-btn @click="remove">Cancel</v-btn>
+                <v-btn color="primary" @click="clockOut">Clock Out</v-btn>
+            </v-card-actions>
+        </v-card>
     `
-})
+});
+
+Vue.component('settings', {
+    props: ['authorized', 'data'],
+    data() {
+        return {
+            dialog: false,
+            spreadsheetName: ''
+        }
+    },
+    methods: {
+        signIn() {
+            window.GoogleAuth.signIn();
+        },
+        signOut() {
+            window.GoogleAuth.signOut();
+        },
+        validate() {
+            gapi.client.drive.files.list({
+                pageSize: 10,
+                fields: 'nextPageToken, files(id, name)',
+                q: 'mimeType=application/vnd.google-apps.spreadsheet'
+            }).then(res => {
+                let files = res.result.files;
+
+                if (files && files.length) {
+                    files.forEach(file => console.log(file.id + ' - ' + file.name));
+                    this.data.spreadsheetId = (files.filter(file => file.name === this.spreadsheetName)[0] || {}).id;
+                }
+            });
+        }
+    },
+    template: `
+        <v-dialog v-model="dialog" width="600">
+            <template v-slot:activator = "{ on }">
+                <v-list-tile color="red lighten-2" v-on="on">
+                    <v-list-tile-title>Settings</v-list-tile-title>
+                </v-list-tile>
+            </template>
+
+            <v-card>
+                <v-card-title class="headline">
+                    Settings
+                </v-card-title>
+
+                <v-divider></v-divider>
+
+                <v-card-text>
+                    TBA
+                </v-card-text>
+
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn v-if="!authorized" color="primary" flat @click="signIn">
+                        Sign In
+                    </v-btn>
+                    <v-btn v-if="authorized" color="primary" flat @click="signOut">
+                        Sign Out
+                    </v-btn>
+                    <v-btn flat @click="dialog = false">Close</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+    `
+});
 
 const app = new Vue({
     el: '#app',
     data: {
         users: [],
         newUser: { name: '', clockIn: null },
-        dark: false
+        dark: false,
+        authorized: false
     },
     mounted() {
         let settings;

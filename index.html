@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Click In/Out System</title>
+    <title>Clock System</title>
     <link href="lib/vuetify.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet">
     <script src="lib/vue.min.js"></script>
@@ -27,6 +27,8 @@
                             </template>
 
                             <v-list>
+                                <settings :authorized="authorized"></settings>
+
                                 <v-list-tile @click="toggleDark">
                                     <v-list-tile-title>Toggle Theme</v-list-tile-title>
                                 </v-list-tile>
@@ -56,7 +58,10 @@
             </v-content>
         </v-app>
     </div>
+
+    <script src="https://apis.google.com/js/api.js"></script>
     <script src="assets/js/main.js"></script>
+    <script src="assets/js/google.js"></script>
 </body>
 
 </html>
