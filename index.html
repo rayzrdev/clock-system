@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Click In/Out System</title>
+    <link href="lib/vuetify.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet">
+    <script src="lib/vue.min.js"></script>
+    <script src="lib/vuetify.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <v-app :dark="dark">
+            <v-content>
+                <v-toolbar>
+                    <v-toolbar-title>Clock System</v-toolbar-title>
+                    <v-spacer></v-spacer>
+                    <v-toolbar-items>
+                        <v-menu bottom>
+                            <template v-slot:activator="{ on }">
+                                <v-btn icon v-on="on">
+                                    <v-icon>more_vert</v-icon>
+                                </v-btn>
+                            </template>
+
+                            <v-list>
+                                <v-list-tile @click="toggleDark">
+                                    <v-list-tile-title>Toggle Theme</v-list-tile-title>
+                                </v-list-tile>
+                            </v-list>
+                        </v-menu>
+                    </v-toolbar-items>
+                </v-toolbar>
+
+                <!-- New user clock system -->
+                <v-container>
+                    <v-layout row wrap>
+                        <v-flex xs12 md8>
+                            <v-text-field v-model="newUser.name">Name</v-text-field>
+                        </v-flex>
+                        <v-flex xs12 md4>
+                            <v-btn large color="primary" @click="clockIn" :disabled="!newUser.name">Clock In</v-btn>
+                        </v-flex>
+                    </v-layout>
+                </v-container>
+
+                <!-- Current users -->
+                <v-container>
+                    <user v-for="(user, index) in users" :state="user" :index="index" @clock-out="clockOut"
+                        @remove="remove">
+                    </user>
+                </v-container>
+            </v-content>
+        </v-app>
+    </div>
+    <script src="assets/js/main.js"></script>
+</body>
+
+</html>
