@@ -195,10 +195,10 @@ const app = new Vue({
 
             const diff = user.clockOut - user.clockIn;
 
-            let seconds = diff / 1000;
-            let minutes = seconds / 60;
+            let seconds = Math.floor(diff / 1000);
+            let minutes = Math.floor(seconds / 60);
             seconds %= 60;
-            let hours = minutes / 60;
+            let hours = Math.floor(minutes / 60);
             minutes %= 60;
 
             let formattedDuration = `${hours < 10 ? '0' : ''}${hours.toFixed(0)}:${minutes < 10 ? '0' : ''}${minutes.toFixed(0)}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
