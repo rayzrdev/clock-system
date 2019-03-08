@@ -177,6 +177,10 @@ const app = new Vue({
             }
         },
         clockIn() {
+            if (!this.newUser.name) {
+                return;
+            }
+
             this.newUser.clockIn = Date.now();
             this.users.push(this.newUser);
             this.currentUser = this.users.length - 1;

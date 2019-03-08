@@ -39,6 +39,7 @@
                     </v-toolbar-items>
                 </v-toolbar>
 
+                <!-- Notificactions -->
                 <v-snackbar v-model="notification.clockOutSuccess" timeout="10000" color="success" top>
                     Successfully clocked out!
                     <v-btn flat icon @click="notification.clockOutSuccess = false">
@@ -57,7 +58,7 @@
                 <v-container>
                     <v-layout row wrap>
                         <v-flex xs12 md8>
-                            <v-text-field v-model="newUser.name">Name</v-text-field>
+                            <v-text-field @keyup.enter="clockIn" v-model="newUser.name">Name</v-text-field>
                         </v-flex>
                         <v-flex xs12 md4>
                             <v-btn large color="primary" @click="clockIn" :disabled="!newUser.name">Clock In</v-btn>
