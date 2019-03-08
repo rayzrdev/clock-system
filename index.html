@@ -7,6 +7,7 @@
     <title>Clock System</title>
     <link href="lib/vuetify.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet">
+    <link rel="icon" href="/favicon.png">
     <script src="lib/vue.min.js"></script>
     <script src="lib/vuetify.min.js"></script>
 </head>
@@ -38,6 +39,20 @@
                     </v-toolbar-items>
                 </v-toolbar>
 
+                <v-snackbar v-model="notification.clockOutSuccess" timeout="10000" color="success" top>
+                    Successfully clocked out!
+                    <v-btn flat icon @click="notification.clockOutSuccess = false">
+                        <v-icon>close</v-icon>
+                    </v-btn>
+                </v-snackbar>
+
+                <v-snackbar v-model="notification.clockOutError" timeout="10000" color="error" top>
+                    Failed to clock out!
+                    <v-btn flat icon @click="notification.clockOutError = false">
+                        <v-icon>close</v-icon>
+                    </v-btn>
+                </v-snackbar>
+
                 <!-- New user clock system -->
                 <v-container>
                     <v-layout row wrap>
@@ -52,14 +67,13 @@
 
                 <!-- Current users -->
                 <v-container>
-                    <user-picker :users="users" @select="setCurrentUser" v-if="currentUser < 0"></user-picker>
+                    <user-picker v-if="currentUser < 0" :users="users" @select="setCurrentUser"></user-picker>
                     <div v-else>
-                        <v-btn flat @click="currentUser = -1">Select other</v-btn>
                         <user :state="users[currentUser]" :index="currentUser" @clock-out="clockOut"
                             @remove="remove(currentUser)">
                         </user>
+                        <v-btn flat @click="currentUser = -1">Select other</v-btn>
                     </div>
-                    <!-- <user v-for="(user, index) in users" :state="user" @clock-out="clockOut"></user> -->
                 </v-container>
             </v-content>
         </v-app>

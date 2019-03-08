@@ -21,6 +21,7 @@ Vue.component('user', {
                 <h3 class="headline">{{state.name}}</h3>
             </v-card-title>
             <v-card-text>Clocked in since {{localeTime}}</v-card-text>
+            <v-divider></v-divider>
             <v-card-actions>
                 <v-btn @click="remove">Cancel</v-btn>
                 <v-btn color="primary" @click="clockOut">Clock Out</v-btn>
@@ -122,6 +123,10 @@ const app = new Vue({
         spreadsheet: {
             id: null,
             name: ''
+        },
+        notification: {
+            clockOutSuccess: false,
+            clockOutError: false
         }
     },
     mounted() {
@@ -138,14 +143,8 @@ const app = new Vue({
         }
     },
     watch: {
-        // TODO: Find a better way to do this??
         users(_, state) {
             this.saveData();
-        }
-    },
-    computed: {
-        hasClockedIn() {
-            return !!this.state.clockIn;
         }
     },
     methods: {
@@ -191,8 +190,6 @@ const app = new Vue({
             user.clockOut = Date.now();
 
             const diff = user.clockOut - user.clockIn;
-            // SEND TO SPREADSHEET
-            console.log(diff);
 
             let seconds = diff / 1000;
             let minutes = seconds / 60;
@@ -200,11 +197,32 @@ const app = new Vue({
             let hours = minutes / 60;
             minutes %= 60;
 
+            let formattedDuration = `${hours < 10 ? '0' : ''}${hours.toFixed(0)}:${minutes < 10 ? '0' : ''}${minutes.toFixed(0)}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
+
             let name = user.name;
 
-            alert(`${name} was clocked in for ${hours.toFixed(0)}h${minutes.toFixed(0)}m${seconds.toFixed(0)}s`);
-
-            this.remove(index);
+            gapi.client.sheets.spreadsheets.values.append({
+                spreadsheetId: this.spreadsheet.id,
+                valueInputOption: 'RAW',
+                majorDimension: 'ROWS',
+                range: 'Sheet1!A1',
+                values: [[
+                    // Name
+                    name,
+                    // Clock in time
+                    new Date(user.clockIn).toLocaleString(),
+                    // Clock out time
+                    new Date(user.clockOut).toLocaleString(),
+                    // Time clocked in
+                    formattedDuration
+                ]]
+            }).then(res => {
+                this.remove(index);
+                this.notification.clockOutSuccess = true;
+            }).catch(error => {
+                console.error(error);
+                this.notification.clockOutError = true;
+            });
         },
         setCurrentUser(index) {
             this.currentUser = index;
