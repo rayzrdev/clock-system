@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Clock System | Privacy Policy</title>
+    <link href="lib/vuetify.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet">
+    <link rel="icon" href="/favicon.png">
+    <script src="lib/vue.min.js"></script>
+    <script src="lib/vuetify.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <v-app :dark="dark">
+            <v-content>
+                <minimal-toolbar></minimal-toolbar>
+
+                <v-container>
+                    <v-flex>
+                        <div class="display-1">Setup</div>
+                    </v-flex>
+
+                    <br>
+                    
+                    <v-flex>
+                        <div class="body-1">Setting up Clock System is surprisingly easy. Simply press the <v-icon>
+                                more_vert</v-icon> button in the top right corner, go to <b>Settings</b>, and then press
+                            <b>Sign In</b>. Once you have signed in, just select the spreadsheet you would like to send
+                            data to.</div>
+                    </v-flex>
+
+                    <br>
+
+                    <v-flex>
+                        <div class="display-1">Usage</div>
+                    </v-flex>
+
+                    <br>
+
+                    <v-flex>
+                        <div class="body-1">In order to track a user's clock in/out time, simply have them enter the name in the main input box and either press the <kbd>Enter</kbd> key on the keyboard or press <b>Clock In</b>. Once they have clocked in, it will start tracking the start time of when they clocked in. You can have as many users as you wish clocked in at once. In order to clock out, select your name from the list if it is not already selected, and press <b>Clock out</b></div>
+                    </v-flex>
+                </v-container>
+            </v-content>
+        </v-app>
+    </div>
+
+    <script src="assets/js/minimal.js"></script>
+</body>
+
+</html>
