@@ -28,7 +28,7 @@
                             </template>
 
                             <v-list>
-                                <settings :authorized="authorized" :spreadsheet="spreadsheet" @save="saveData">
+                                <settings :scriptID="scriptID" :authKey="authKey" @save="saveData">
                                 </settings>
 
                                 <v-list-tile @click="toggleDark">
@@ -43,6 +43,14 @@
                             <v-list-tile href="help.html">
                                 <v-list-tile-title>Help</v-list-tile-title>
                             </v-list-tile>
+
+                            <v-list-title>
+                                Script ID: {{ scriptID }}
+                            </v-list-title>
+
+                            <v-list-title>
+                                Auth Key: {{ authKey }}
+                            </v-list-title>
                         </v-menu>
                     </v-toolbar-items>
                 </v-toolbar>
@@ -90,7 +98,6 @@
 
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/google.js"></script>
 </body>
 
 </html>

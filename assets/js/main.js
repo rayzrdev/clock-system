@@ -50,31 +50,12 @@ Vue.component('user-picker', {
 })
 
 Vue.component('settings', {
-    props: ['authorized', 'spreadsheet'],
+    props: ['scriptID', 'authKey'],
     data() {
         return {
             dialog: false,
-            spreadsheetName: ''
-        }
-    },
-    methods: {
-        signIn() {
-            window.GoogleAuth.signIn();
-        },
-        signOut() {
-            window.GoogleAuth.signOut();
-        },
-        selectSheet() {
-            pickFile().then(res => {
-                if (res && res.docs && res.docs.length) {
-                    const doc = res.docs[0];
-                    this.spreadsheet.id = doc.id;
-                    this.spreadsheet.name = doc.name;
-
-                    console.log('Saving...');
-                    this.$emit('save');
-                }
-            });
+            scriptID: '',
+            authKey: ''
         }
     },
     template: `
@@ -93,18 +74,19 @@ Vue.component('settings', {
                 <v-divider></v-divider>
 
                 <v-card-text>
-                    Selected spreadsheet: <b>{{ spreadsheet.name || 'None' }}</b>
+                    <v-text-field label="Script ID" v-model="scriptID"></v-text-field>
+                </v-card-text>
+                
+                <v-card-text>
+                    <v-text-field label="Auth Key" v-model="authKey"></v-text-field>
+                </v-card-text>
+
+
+                <v-card-text>
+                    Script ID: {{ scriptID }} | Auth Key: {{ authKey }}
                 </v-card-text>
 
                 <v-card-actions>
-                    <v-btn v-if="authorized" color="primary" outline @click="selectSheet">Select...</v-btn>
-                    <v-spacer></v-spacer>
-                    <v-btn v-if="!authorized" color="primary" flat @click="signIn">
-                        Sign In
-                    </v-btn>
-                    <v-btn v-if="authorized" color="primary" flat @click="signOut">
-                        Sign Out
-                    </v-btn>
                     <v-btn flat @click="dialog = false">Close</v-btn>
                 </v-card-actions>
             </v-card>
@@ -118,12 +100,9 @@ const app = new Vue({
         users: [],
         newUser: { name: '', clockIn: null },
         dark: false,
-        authorized: false,
         currentUser: -1,
-        spreadsheet: {
-            id: null,
-            name: ''
-        },
+        scriptID: '',
+        authKey: '',
         notification: {
             clockOutSuccess: false,
             clockOutError: false
@@ -139,7 +118,8 @@ const app = new Vue({
             // Manually handle
             this.users = settings.users;
             this.dark = settings.dark;
-            this.spreadsheet = settings.spreadsheet || { id: null, name: '' };
+            this.spreadsheet = settings.scriptID || '';
+            this.authKey = settings.authKey || '';
         }
     },
     watch: {
@@ -150,31 +130,17 @@ const app = new Vue({
     methods: {
         saveData() {
             console.log('Saving data!');
-            console.log(this.spreadsheet);
+            
             localStorage.setItem('clock-state', JSON.stringify({
                 users: this.users,
                 dark: this.dark,
-                spreadsheet: this.spreadsheet
+                scriptID: this.scriptID,
+                authKey: this.authKey
             }));
         },
         toggleDark() {
             this.dark = !this.dark;
             this.saveData();
-        },
-        updateSpreadsheet(spreadsheet) {
-            this.spreadsheet = spreadsheet;
-            this.saveData();
-        },
-        verifySpreadsheet() {
-            if (this.spreadsheet.id) {
-                gapi.client.sheets.spreadsheets.get({ spreadsheetId: this.spreadsheet.id }).then(res => {
-                    if (res.status !== 200) {
-                        this.spreadsheet = { id: null, name: '' };
-                    }
-                }).catch(error => {
-                    this.spreadsheet = { id: null, name: '' };
-                });
-            }
         },
         clockIn() {
             if (!this.newUser.name) {
@@ -193,33 +159,8 @@ const app = new Vue({
 
             user.clockOut = Date.now();
 
-            const diff = user.clockOut - user.clockIn;
-
-            let seconds = Math.floor(diff / 1000);
-            let minutes = Math.floor(seconds / 60);
-            seconds %= 60;
-            let hours = Math.floor(minutes / 60);
-            minutes %= 60;
-
-            let formattedDuration = `${hours < 10 ? '0' : ''}${hours.toFixed(0)}:${minutes < 10 ? '0' : ''}${minutes.toFixed(0)}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
-
-            let name = user.name;
-
-            gapi.client.sheets.spreadsheets.values.append({
-                spreadsheetId: this.spreadsheet.id,
-                valueInputOption: 'RAW',
-                majorDimension: 'ROWS',
-                range: 'Sheet1!A1',
-                values: [[
-                    // Name
-                    name,
-                    // Clock in time
-                    new Date(user.clockIn).toLocaleString(),
-                    // Clock out time
-                    new Date(user.clockOut).toLocaleString(),
-                    // Time clocked in
-                    formattedDuration
-                ]]
+            fetch(`https://script.google.com/macros/s/${this.scriptID}/exec?auth=${this.authKey}`, {
+                body: user
             }).then(res => {
                 this.remove(index);
                 this.notification.clockOutSuccess = true;
